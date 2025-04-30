@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 100
+
+typedef struct {
+    int roll_number;
+    char dept[10];
+} Student;
+
+typedef struct {
+    Student *student;
+} Seat;
+
+int isSafe(Seat classroom[][MAX], int i, int j, int rows, int cols, char *dept) {
+    if (i > 0 && classroom[i-1][j].student && strcmp(classroom[i-1][j].student->dept, dept) == 0)
+        return 0;
+    if (i < rows-1 && classroom[i+1][j].student && strcmp(classroom[i+1][j].student->dept, dept) == 0)
+        return 0;
+    if (j > 0 && classroom[i][j-1].student && strcmp(classroom[i][j-1].student->dept, dept) == 0)
+        return 0;
+    if (j < cols-1 && classroom[i][j+1].student && strcmp(classroom[i][j+1].student->dept, dept) == 0)
+        return 0;
+
+    return 1;
+}
+
+void printClassroom(Seat classroom[][MAX], int rows, int cols) {
+    printf("\nSeat Matrix:\n");
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (classroom[i][j].student)
+                printf("%d(%s)\t", classroom[i][j].student->roll_number, classroom[i][j].student->dept);
+            else
+                printf("----\t");
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    int rows, cols, n;
+
+    printf("Enter classroom size (rows cols): ");
+    scanf("%d %d", &rows, &cols);
+
+    printf("Enter number of students: ");
+    scanf("%d", &n);
+
+    Student students[n];
+    Seat classroom[MAX][MAX] = {0}; // init all to NULL
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter roll number and department for student %d: ", i + 1);
+        scanf("%d %s", &students[i].roll_number, students[i].dept);
+    }
+
+    int placed = 0;
+    for (int s = 0; s < n; s++) {
+        int assigned = 0;
+        for (int i = 0; i < rows && !assigned; i++) {
+            for (int j = 0; j < cols && !assigned; j++) {
+                if (classroom[i][j].student == NULL && isSafe(classroom, i, j, rows, cols, students[s].dept)) {
+                    classroom[i][j].student = &students[s];
+                    assigned = 1;
+                    placed++;
+                }
+            }
+        }
+        if (!assigned) {
+            printf("Could not place student %d (%s) due to department conflict\n",
+                   students[s].roll_number, students[s].dept);
+        }
+    }
+
+    printClassroom(classroom, rows, cols);
+ }
